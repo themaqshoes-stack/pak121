@@ -2,18 +2,39 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "nixpacksBuildCommand": "pip install -r requirements.txt",
     "nixpacksPlan": {
-      "providers": ["python"]
+      "providers": ["python"],
+      "phases": {
+        "setup": {
+          "aptPkgs": [
+            "libgomp1",
+            "libgl1",
+            "libglib2.0-0",
+            "libsm6",
+            "libxext6",
+            "libxrender-dev"
+          ],
+          "nixpkgsArchive": "ab56fd9b393923e92c2b6e4d3b38e4f4e473c48a"
+        },
+        "install": {
+          "cmd": [
+            "python -m pip install --upgrade pip setuptools wheel",
+            "python -m pip install --no-cache-dir -r requirements.txt"
+          ]
+        }
+      },
+      "vars": {
+        "PYTHON_VERSION": "3.12"
+      }
     }
   },
   "deploy": {
-    "start": "uvicorn cad_backend:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips=\"*\" --timeout-keep-alive 300",
+    "start": "uvicorn cad_backend:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips=\"*\" --timeout-keep-alive 300 --timeout-graceful-shutdown 30",
     "healthcheck": {
       "type": "http",
       "path": "/health",
       "intervalSeconds": 60,
-      "timeoutSeconds": 15,
+      "timeoutSeconds": 20,
       "healthyThreshold": 2,
       "unhealthyThreshold": 5
     },
@@ -24,11 +45,11 @@
     "startupProbe": {
       "type": "http",
       "path": "/health",
-      "initialDelaySeconds": 10,
+      "initialDelaySeconds": 15,
       "periodSeconds": 10,
       "successThreshold": 1,
-      "failureThreshold": 30,
-      "timeoutSeconds": 10
+      "failureThreshold": 60,
+      "timeoutSeconds": 15
     }
   }
 }
