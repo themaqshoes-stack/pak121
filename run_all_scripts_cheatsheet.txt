@@ -1,0 +1,41 @@
+
+=============================================================
+  HOW TO RUN SCRIPTS IN WINDOWS POWERSHELL (FIX FOR ERROR)
+=============================================================
+
+PowerShell DOES NOT include the current folder (.) in PATH by
+default (for security). So you MUST use ".\" prefix to run a
+.bat / .cmd / .ps1 script that lives in the current folder.
+
+-------------------------------------------------------------
+CORRECT COMMANDS (copy-paste any one)
+-------------------------------------------------------------
+
+1. From INSIDE  c:\Users\Muhammad Abdullah Qu\Desktop\image-to-step-main (2)\image-to-step-main
+
+   cd "c:\Users\Muhammad Abdullah Qu\Desktop\image-to-step-main (2)\image-to-step-main"
+   .\install_and_run.bat        <- recommended (full install + run)
+   .\run_backend.bat
+   powershell -ExecutionPolicy Bypass -File .\run_backend.ps1
+   python check_setup.py        <- no prefix needed for .py files
+   python -m uvicorn cad_backend:app --host 0.0.0.0 --port 8000 --reload
+
+2. From OUTER folder  c:\Users\Muhammad Abdullah Qu\Desktop\image-to-step-main (2)
+
+   .\LAUNCH_CAD_BACKEND.bat     <- just double-click this file!
+
+3. Running with FULL PATH (works from anywhere, no cd needed):
+
+   & "c:\Users\Muhammad Abdullah Qu\Desktop\image-to-step-main (2)\LAUNCH_CAD_BACKEND.bat"
+   & "c:\Users\Muhammad Abdullah Qu\Desktop\image-to-step-main (2)\image-to-step-main\install_and_run.bat"
+
+-------------------------------------------------------------
+EASY TIP: Use CMD.EXE instead of PowerShell if you want to
+          skip the .\ prefix entirely.
+
+   Press Win+R, type  cmd  <enter>, then paste:
+
+   cd /d "c:\Users\Muhammad Abdullah Qu\Desktop\image-to-step-main (2)\image-to-step-main"
+   install_and_run.bat        (no .\ needed in CMD)
+
+=============================================================

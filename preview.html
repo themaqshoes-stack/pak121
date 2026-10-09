@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image to STEP Widget — Live Preview</title>
+  <link rel="stylesheet" href="./widget/image-to-step-widget.css" />
+  <style>
+    :root {
+      --bg-grad-1: #6366f1;
+      --bg-grad-2: #a855f7;
+      --bg-grad-3: #ec4899;
+      --card: #ffffff;
+      --muted: #64748b;
+      --text: #0f172a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; min-height: 100%; }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 800px at 10% -10%, rgba(99,102,241,.25), transparent 60%),
+        radial-gradient(900px 600px at 100% 0%, rgba(168,85,247,.20), transparent 60%),
+        radial-gradient(800px 600px at 50% 120%, rgba(236,72,153,.18), transparent 60%),
+        linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      min-height: 100vh;
+    }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 56px 24px 80px;
+    }
+    .hero { text-align: center; margin-bottom: 40px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px;
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 999px;
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      box-shadow: 0 8px 24px -14px rgba(15,23,42,.2);
+      margin-bottom: 22px;
+    }
+    .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 4px rgba(16,185,129,.18); }
+    .hero h1 {
+      font-size: clamp(28px, 4.5vw, 46px);
+      margin: 0 0 14px;
+      letter-spacing: -.02em;
+      line-height: 1.05;
+      background: linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2) 55%, var(--bg-grad-3));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero p { margin: 0 auto; max-width: 620px; color: var(--muted); font-size: 16px; line-height: 1.6; }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid rgba(148,163,184,.25);
+      padding: 26px;
+      box-shadow: 0 20px 60px -30px rgba(15,23,42,.25);
+    }
+    .card h2 { margin: 0 0 6px; font-size: 18px; letter-spacing: -.01em; }
+    .card .lead { margin: 0 0 18px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+
+    .config label { display: block; font-size: 13px; font-weight: 600; margin: 0 0 6px; color: var(--text); }
+    .config input {
+      width: 100%; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid #e2e8f0; font-family: inherit; font-size: 14px;
+      transition: all .15s ease;
+    }
+    .config input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 4px #eef2ff; }
+    .config .row + .row { margin-top: 12px; }
+    .config p.hint { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+
+    .features { margin: 16px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .features li {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 12px; background: #f8fafc; border-radius: 10px; font-size: 13px; color: #334155;
+    }
+    .features .i {
+      width: 22px; height: 22px; flex-shrink: 0;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      color: #fff; background: linear-gradient(135deg, #6366f1, #a855f7); margin-top: 1px;
+    }
+    .features .i svg { width: 13px; height: 13px; }
+
+    .code {
+      margin-top: 18px;
+      background: #0f172a; color: #e2e8f0;
+      border-radius: 12px; padding: 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12.5px; line-height: 1.65;
+      overflow: auto;
+    }
+    .code .c  { color: #64748b; }
+    .code .k  { color: #c084fc; }
+    .code .s  { color: #34d399; }
+    .code .a  { color: #fbbf24; }
+    .code .n  { color: #60a5fa; }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
+    }
+    .chip {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11.5px; padding: 4px 10px;
+      background: #eef2ff; color: #4338ca;
+      border-radius: 999px;
+      border: 1px solid #c7d2fe;
+    }
+    .btn-outline {
+      font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: 10px;
+      border: 1px solid #e2e8f0; background: #fff; color: #0f172a; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+      transition: all .15s ease;
+    }
+    .btn-outline:hover:not(:disabled) { border-color: #cbd5e1; background: #f8fafc; }
+    .btn-outline:disabled { opacity: .6; cursor: not-allowed; }
+
+    .btn-outline .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid #e2e8f0;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: its-spin .6s linear infinite;
+      display: none;
+    }
+    .btn-outline.is-loading .spinner { display: inline-block; }
+    .btn-outline.is-loading .btn-icon { display: none; }
+
+    .btn-outline.is-success {
+      background: #ecfdf5; border-color: #6ee7b7; color: #047857;
+    }
+    .btn-outline.is-error {
+      background: #fef2f2; border-color: #fecaca; color: #b91c1c;
+    }
+
+    @keyframes its-spin { to { transform: rotate(360deg); } }
+
+    .health-panel {
+      margin-top: 12px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.55;
+      display: none;
+      border: 1px solid transparent;
+    }
+    .health-panel.is-visible { display: block; animation: its-fadein .2s ease; }
+    .health-panel--ok {
+      background: #ecfdf5; border-color: #a7f3d0; color: #064e3b;
+    }
+    .health-panel--err {
+      background: #fef2f2; border-color: #fecaca; color: #7f1d1d;
+    }
+    .health-panel__row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 2px 0;
+    }
+    .health-panel__row + .health-panel__row { border-top: 1px dashed rgba(0,0,0,.08); margin-top: 2px; padding-top: 4px; }
+    .health-panel__k { font-weight: 600; opacity: .85; }
+    .health-panel__v { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+    .health-panel__title {
+      font-weight: 700; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .health-panel__badge {
+      font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 700;
+    }
+    .health-panel--ok .health-panel__badge { background: #10b981; color: #fff; }
+    .health-panel--err .health-panel__badge { background: #ef4444; color: #fff; }
+
+    @keyframes its-fadein {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .footer {
+      margin-top: 40px; text-align: center; color: var(--muted); font-size: 13px;
+    }
+    .footer a { color: var(--bg-grad-1); text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="hero">
+      <span class="pill"><span class="dot"></span> Preview Build · Image → STEP Widget</span>
+      <h1>Turn any photo into a 3D STEP file,<br/>right from your website.</h1>
+      <p>Drop in this embeddable widget. It uploads to your CAD backend, runs background removal + contour extraction + extrusion, then returns a STEP file. Perfect for Gridfinity bins, custom CAD parts, and product configurators.</p>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: Live Widget -->
+      <section class="card">
+        <div class="topbar">
+          <div>
+            <h2>Live Widget Preview</h2>
+            <p class="lead">This is the real widget — same code you'll embed on your site.</p>
+          </div>
+          <span class="chip" id="widgetChip">Unconfigured</span>
+        </div>
+
+        <div
+          id="theWidget"
+          class="its-widget"
+          data-cad-backend-url="http://localhost:8000"
+          data-cad-backend-key="sk_cad_7QvLm2xRnTp4WsZ8KyHjB9cDx3EfA6UgVhNsPo1MrYtIbCqJ"
+        ></div>
+
+        <p class="footer" style="margin-top:18px;">
+          Backend must be running at <code style="background:#eef2ff;padding:2px 6px;border-radius:6px;font-family:monospace;">http://localhost:8000</code> for Generate STEP to work.
+        </p>
+      </section>
+
+      <!-- RIGHT: Config + Info -->
+      <section class="card">
+        <h2>Configure Backend</h2>
+        <p class="lead">These fields are wired directly into the widget above. Update to match your deployed CAD Backend.</p>
+
+        <div class="config">
+          <div class="row">
+            <label for="cfg-url">CAD_BACKEND_URL</label>
+            <input id="cfg-url" type="url" value="http://localhost:8000" placeholder="https://cad.yourdomain.com" />
+            <p class="hint">Running locally? Use <code>http://localhost:8000</code>.</p>
+          </div>
+          <div class="row">
+            <label for="cfg-key">CAD_BACKEND_KEY</label>
+            <input id="cfg-key" type="text" value="sk_cad_7QvLm2xRnTp4WsZ8KyHjB9cDx3EfA6UgVhNsPo1MrYtIbCqJ" placeholder="sk_cad_…" />
+            <p class="hint">Never expose this in client-side code in production. Instead, proxy through your website backend.</p>
+          </div>
+
+          <div class="row">
+            <button type="button" class="btn-outline" id="testBtn">
+              <span class="spinner" aria-hidden="true"></span>
+              <span class="btn-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+              </span>
+              <span class="btn-label">Test local backend health</span>
+            </button>
+
+            <div class="health-panel" id="healthPanel" role="status" aria-live="polite">
+              <div class="health-panel__title">
+                <span id="hpTitle">Health check</span>
+                <span class="health-panel__badge" id="hpBadge">—</span>
+              </div>
+              <div id="hpRows"></div>
+            </div>
+          </div>
+        </div>
+
+        <ul class="features">
+          <li>
+            <div class="i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+            <div><strong>BG Removal</strong><br/>rembg with ONNX runtime</div>
+          </li>
+          <li>
+            <div class="i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+            <div><strong>Contour Extract</strong><br/>OpenCV + adjustable clearance</div>
+          </li>
+          <li>
+            <div class="i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+            <div><strong>3D Extrude</strong><br/>CadQuery solid geometry</div>
+          </li>
+          <li>
+            <div class="i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+            <div><strong>STEP Export</strong><br/>AP214 ready for any CAD</div>
+          </li>
+          <li>
+            <div class="i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+            <div><strong>Bearer Auth</strong><br/>API key verified server-side</div>
+          </li>
+          <li>
+            <div class="i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+            <div><strong>0 Deps</strong><br/>Vanilla JS + CSS drop-in</div>
+          </li>
+        </ul>
+
+        <pre class="code" aria-label="Embed code"><span class="c">&lt;!-- Embed on your website: --&gt;</span>
+<span class="k">&lt;link</span> <span class="a">rel</span>=<span class="s">"stylesheet"</span> <span class="a">href</span>=<span class="s">"/widget/image-to-step-widget.css"</span><span class="k">&gt;</span>
+
+<span class="k">&lt;div</span> <span class="a">class</span>=<span class="s">"its-widget"</span>
+     <span class="a">data-cad-backend-url</span>=<span class="s">"https://cad.yourdomain.com"</span>
+     <span class="a">data-cad-backend-key</span>=<span class="s">"⚠️ PROXY THIS via your SERVER backend — never expose key in client"</span><span class="k">&gt;&lt;/div&gt;</span>
+
+<span class="k">&lt;script</span> <span class="a">src</span>=<span class="s">"/widget/image-to-step-widget.js"</span> <span class="a">defer</span><span class="k">&gt;&lt;/script&gt;</span></pre>
+      </section>
+    </div>
+
+    <p class="footer">
+      Built with <a href="https://cadquery.readthedocs.io/" target="_blank" rel="noreferrer">CadQuery</a> ·
+      <a href="https://github.com/danielgatis/rembg" target="_blank" rel="noreferrer">rembg</a> ·
+      FastAPI. Backend is in <code>cad_backend.py</code>.
+    </p>
+  </div>
+
+  <script src="./widget/image-to-step-widget.js"></script>
+  <script>
+    (function () {
+      const chip = document.getElementById('widgetChip');
+      const urlInput = document.getElementById('cfg-url');
+      const keyInput = document.getElementById('cfg-key');
+      const widgetEl = document.getElementById('theWidget');
+
+      function apply() {
+        const url = urlInput.value.trim();
+        const key = keyInput.value.trim();
+        if (widgetEl.__imageToStepWidget) {
+          widgetEl.__imageToStepWidget.setBackend({ url, key });
+          widgetEl.__imageToStepWidget._syncButtonState();
+        }
+        const ok = !!url && !!key;
+        chip.textContent = ok ? 'Backend Configured' : 'Unconfigured';
+        chip.style.background = ok ? '#ecfdf5' : '#fef3c7';
+        chip.style.color = ok ? '#047857' : '#92400e';
+        chip.style.borderColor = ok ? '#6ee7b7' : '#fcd34d';
+      }
+      urlInput.addEventListener('input', apply);
+      keyInput.addEventListener('input', apply);
+      apply();
+
+      const testBtn = document.getElementById('testBtn');
+      const testBtnLabel = testBtn.querySelector('.btn-label');
+      const healthPanel = document.getElementById('healthPanel');
+      const hpTitle = document.getElementById('hpTitle');
+      const hpBadge = document.getElementById('hpBadge');
+      const hpRows = document.getElementById('hpRows');
+
+      function formatUptime(s) {
+        s = Number(s) || 0;
+        if (s < 60) return s + 's';
+        const m = Math.floor(s / 60);
+        if (m < 60) return m + 'm ' + (s % 60) + 's';
+        const h = Math.floor(m / 60);
+        return h + 'h ' + (m % 60) + 'm';
+      }
+
+      function setPanel(kind, rows, titleText, badgeText) {
+        healthPanel.classList.remove('health-panel--ok', 'health-panel--err');
+        healthPanel.classList.add(kind === 'ok' ? 'health-panel--ok' : 'health-panel--err');
+        hpTitle.textContent = titleText;
+        hpBadge.textContent = badgeText;
+        hpRows.innerHTML = '';
+        rows.forEach(([k, v]) => {
+          const row = document.createElement('div');
+          row.className = 'health-panel__row';
+          const kEl = document.createElement('span');
+          kEl.className = 'health-panel__k';
+          kEl.textContent = k;
+          const vEl = document.createElement('span');
+          vEl.className = 'health-panel__v';
+          vEl.textContent = v;
+          row.appendChild(kEl);
+          row.appendChild(vEl);
+          hpRows.appendChild(row);
+        });
+        healthPanel.classList.add('is-visible');
+      }
+
+      testBtn.addEventListener('click', async function () {
+        const base = urlInput.value.trim().replace(/\/+$/, '');
+        if (!base) {
+          setPanel('err',
+            [['Issue', 'CAD_BACKEND_URL is empty']],
+            'Health check', 'CONFIG');
+          return;
+        }
+
+        testBtn.disabled = true;
+        testBtn.classList.add('is-loading');
+        testBtn.classList.remove('is-success', 'is-error');
+        testBtnLabel.textContent = 'Testing…';
+        healthPanel.classList.remove('is-visible');
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 5000);
+
+        try {
+          const t0 = performance.now();
+          const res = await fetch(base + '/health', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            signal: controller.signal,
+          });
+          const dt = Math.round(performance.now() - t0);
+          clearTimeout(timer);
+
+          const ct = res.headers.get('content-type') || '';
+          const isJson = ct.includes('application/json');
+          const data = isJson ? await res.json() : { raw: (await res.text()).slice(0, 200) };
+
+          if (res.ok && (data.status === 'ok' || data.status === 'healthy')) {
+            testBtn.classList.add('is-success');
+            testBtnLabel.textContent = 'Backend healthy';
+            const rows = [
+              ['Status', data.status],
+              ['HTTP', res.status + ' ' + res.statusText],
+              ['Latency', dt + ' ms'],
+            ];
+            if (data.service) rows.push(['Service', data.service]);
+            if (typeof data.key_configured !== 'undefined')
+              rows.push(['Key configured', data.key_configured ? 'Yes' : 'No']);
+            if (typeof data.uptime_s !== 'undefined')
+              rows.push(['Uptime', formatUptime(data.uptime_s)]);
+            setPanel('ok', rows, 'Backend is reachable', 'ONLINE');
+          } else {
+            testBtn.classList.add('is-error');
+            testBtnLabel.textContent = 'Health check failed';
+            const rows = [
+              ['HTTP', res.status + ' ' + res.statusText],
+              ['Latency', dt + ' ms'],
+            ];
+            if (data.detail) rows.push(['Detail', String(data.detail)]);
+            else if (data.status) rows.push(['Status', String(data.status)]);
+            rows.push(['URL', base + '/health']);
+            setPanel('err', rows, 'Backend responded but unhealthy', 'WARN');
+          }
+        } catch (err) {
+          clearTimeout(timer);
+          testBtn.classList.add('is-error');
+          testBtnLabel.textContent = 'Could not reach backend';
+          const reason =
+            err && err.name === 'AbortError' ? 'Request timed out (>5s)' :
+            err && err.message ? err.message : String(err);
+          setPanel('err',
+            [
+              ['Error', reason],
+              ['URL', base + '/health'],
+              ['Tip', 'Is the backend running? (try run_backend.bat or node mock_backend.js)'],
+            ],
+            'Backend unreachable', 'OFFLINE');
+        } finally {
+          testBtn.disabled = false;
+          testBtn.classList.remove('is-loading');
+          if (!testBtn.classList.contains('is-success') && !testBtn.classList.contains('is-error')) {
+            testBtnLabel.textContent = 'Test local backend health';
+          }
+          setTimeout(() => {
+            testBtn.classList.remove('is-success', 'is-error');
+            testBtnLabel.textContent = 'Test local backend health';
+          }, 6000);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
