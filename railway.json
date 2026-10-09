@@ -2,31 +2,34 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
+    "nixpacksPlanVersion": 1,
     "nixpacksPlan": {
       "providers": ["python"],
+      "variables": {
+        "PYTHON_VERSION": "3.12"
+      },
       "phases": {
         "setup": {
-          "aptPkgs": [
-            "libgomp1",
-            "libgl1",
-            "libglib2.0-0",
-            "libsm6",
-            "libxext6",
-            "libxrender-dev"
-          ],
-          "nixpkgsArchive": "ab56fd9b393923e92c2b6e4d3b38e4f4e473c48a"
+          "aptPkgs": ["libgomp1", "libgl1", "libglib2.0-0", "libsm6", "libxext6", "libxrender-dev"]
         },
         "install": {
-          "cmd": [
-            "python -m pip install --upgrade pip setuptools wheel",
+          "cmds": [
+            "python -m pip install --upgrade 'pip>=24.1' 'setuptools>=70' 'wheel>=0.43'",
             "python -m pip install --no-cache-dir -r requirements.txt"
           ]
+        },
+        "build": {
+          "dependsOn": ["setup", "install"]
         }
-      },
-      "vars": {
-        "PYTHON_VERSION": "3.12"
       }
-    }
+    },
+    "watchPatterns": [
+      "cad_backend.py",
+      "requirements.txt",
+      "pyproject.toml",
+      "Procfile",
+      "railway.json"
+    ]
   },
   "deploy": {
     "start": "uvicorn cad_backend:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips=\"*\" --timeout-keep-alive 300 --timeout-graceful-shutdown 30",
