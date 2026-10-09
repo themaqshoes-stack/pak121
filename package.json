@@ -1,0 +1,15 @@
+{
+  "name": "cad-backend-stub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "STUB ONLY: Forces npm start to launch the Python CAD backend via uvicorn.\nThis file exists purely so Railway/Railpack's Node.js fallback never emits\n`npm: command not found` and never runs an empty/absent npm start script.\nThe actual backend is Python FastAPI in cad_backend.py.",
+  "scripts": {
+    "start": "python -m uvicorn cad_backend:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips=\"*\" --timeout-keep-alive 300 --timeout-graceful-shutdown 30",
+    "build": "python -m pip install --upgrade 'pip>=24.1' 'setuptools>=70' 'wheel>=0.43' && python -m pip install --no-cache-dir -r requirements.txt",
+    "install": "echo 'Skipping npm install — this is a Python project.'",
+    "test": "echo 'No npm tests (Python project).'"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
