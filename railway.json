@@ -2,12 +2,14 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
+    "start": "python -m uvicorn cad_backend:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips=\"*\" --timeout-keep-alive 300 --timeout-graceful-shutdown 30",
     "nixpacksPlanVersion": 1,
     "nixpacksPlan": {
       "providers": ["python"],
       "excludeProviders": ["node", "bun", "deno"],
       "variables": {
-        "PYTHON_VERSION": "3.12"
+        "PYTHON_VERSION": "3.12",
+        "NIXPACKS_START_CMD": "python -m uvicorn cad_backend:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips=\"*\" --timeout-keep-alive 300 --timeout-graceful-shutdown 30"
       },
       "phases": {
         "setup": {
@@ -21,7 +23,13 @@
           ]
         },
         "build": {
-          "dependsOn": ["setup", "install"]
+          "dependsOn": ["setup", "install"],
+          "cmds": [
+            "find . -maxdepth 3 -type f \\( -name 'package.json' -o -name 'package-lock.json' -o -name 'yarn.lock' -o -name 'pnpm-lock.yaml' -o -name 'bun.lockb' -o -name 'deno.lock' \\) -delete 2>/dev/null || true"
+          ]
+        },
+        "start": {
+          "cmd": "python -m uvicorn cad_backend:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips=\"*\" --timeout-keep-alive 300 --timeout-graceful-shutdown 30"
         }
       }
     },
@@ -34,7 +42,8 @@
     ]
   },
   "deploy": {
-    "start": "uvicorn cad_backend:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips=\"*\" --timeout-keep-alive 300 --timeout-graceful-shutdown 30",
+    "start": "python -m uvicorn cad_backend:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips=\"*\" --timeout-keep-alive 300 --timeout-graceful-shutdown 30",
+    "startCommand": "python -m uvicorn cad_backend:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips=\"*\" --timeout-keep-alive 300 --timeout-graceful-shutdown 30",
     "healthcheck": {
       "type": "http",
       "path": "/health",
